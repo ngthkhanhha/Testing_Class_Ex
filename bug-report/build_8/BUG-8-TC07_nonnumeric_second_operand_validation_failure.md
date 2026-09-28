@@ -1,0 +1,36 @@
+# Bug Report: BUG-8-TC07 - Nonnumeric second operand validation failure
+
+| Attribute | Details |
+|---|---|
+| **Bug ID** | `BUG-8-TC07` |
+| **Build** | 8 |
+| **Test Case ID** | TC-07 |
+| **Module / Area** | Validation |
+| **Priority / Severity** | P1 |
+| **Status** | Open (Failed in Test Run) |
+| **Date Reported** | 2026-09-28 |
+
+---
+
+### 1. Description
+During test execution of test case **TC-07** on **Build 8**, the application failed to produce the expected output.
+
+### 2. Steps to Reproduce
+1. Open the Basic Calculator test page at `https://testsheepnz.github.io/BasicCalculator.html`.
+2. Select **Build 8** from the **Build** dropdown.
+3. Perform test input: `2 + abc`.
+4. Trigger calculation / inspect control state.
+
+### 3. Expected Result
+```text
+Error message identifies Number 2 is not a number; no answer produced
+```
+
+### 4. Actual Result
+```text
+error=Number 1 is not a number; answer=(blank)
+```
+
+### 5. Root Cause / Defect Impact
+- **Impact**: Functional defect in Validation module on Build 8.
+- **Observed Behavior**: `error=Number 1 is not a number; answer=(blank)`.
