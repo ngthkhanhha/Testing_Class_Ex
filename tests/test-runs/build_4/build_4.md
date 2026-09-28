@@ -1,0 +1,19 @@
+# Test Run Report - Build 4
+
+| Test Case ID | Module | Tester | Result | Related Bug | Note |
+|---|---|---|---|---|---|
+| TC-01 | Build selection | | ✅ **Pass** | | |
+| TC-02 | Arithmetic | | ✅ **Pass** | | |
+| TC-03 | Arithmetic | | ✅ **Pass** | | |
+| TC-04 | Arithmetic | | ✅ **Pass** | | |
+| TC-05 | Arithmetic | | ❌ **Fail** | | |
+| TC-06 | Validation | | ✅ **Pass** | | |
+| TC-07 | Validation | | ✅ **Pass** | | |
+| TC-08 | Division | | ❌ **Fail** | | |
+| TC-09 | Concatenation | | ✅ **Pass** | | |
+| TC-10 | Operation state | | ✅ **Pass** | | |
+| TC-11 | Operation state | | ❌ **Fail** | | |
+| TC-12 | Formatting | | ✅ **Pass** | | |
+| TC-13 | Clear | | ✅ **Pass** | | |
+| TC-14 | Build state | | ✅ **Pass** | | |
+| TC-15 | Build state | | ✅ **Pass** | | |
