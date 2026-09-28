@@ -1,0 +1,16 @@
+TC-ID,Area,Scenario,Input,Expected result,Priority
+TC-01,Build selection,Select each available build,Prototype and builds 1-9,Selected build is retained and expected controls are available,P1
+TC-02,Arithmetic,Addition,7 + 3,10,P1
+TC-03,Arithmetic,Subtraction,7 - 3,4,P1
+TC-04,Arithmetic,Multiplication,7 * 3,21,P1
+TC-05,Arithmetic,Division with decimal result,7 / 2,3.5,P1
+TC-06,Validation,Reject nonnumeric first operand,abc + 2,Error identifies Number 1; no answer produced,P1
+TC-07,Validation,Reject nonnumeric second operand,2 + abc,Error identifies Number 2; no answer produced,P1
+TC-08,Division,Reject division by zero,7 / 0,Divide-by-zero error; no non-finite answer; controls recover,P1
+TC-09,Concatenation,Concatenate text operands,foo concatenate bar,foobar,P1
+TC-10,Operation state,Integer option hidden for concatenation,Choose Concatenate,Integer option hidden and unchecked,P2
+TC-11,Operation state,Integer option available for arithmetic,Choose Add,Integer option visible and enabled,P2
+TC-12,Formatting,Toggle integer result,7 / 2 with Integers only,Answer is 3 when enabled and 3.5 when disabled,P2
+TC-13,Clear,Clear answer and reset integer option,Calculate then Clear,Answer and error are blank; checkbox unchecked,P2
+TC-14,Build state,Clear action available,Select each build except known defect,Clear button enabled,P2
+TC-15,Build state,Calculator controls available,Select each build,Operands and Calculate are visible and enabled,P1
