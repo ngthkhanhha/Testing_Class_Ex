@@ -62,7 +62,8 @@ function safeWriteFileSync(filePath, content) {
 }
 
 function splitBuildTests() {
-  const rootDir = __dirname;
+  const scriptDir = __dirname;
+  const rootDir = path.join(scriptDir, '..', '..');
   const testcasesPath = path.join(rootDir, 'calculator-testcases.csv');
   const testresultsPath = path.join(rootDir, 'calculator-test-results.csv');
   const testCasesDir = path.join(rootDir, 'tests', 'test-cases');

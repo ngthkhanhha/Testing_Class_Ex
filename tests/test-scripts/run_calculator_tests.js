@@ -3,7 +3,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 const url = 'https://testsheepnz.github.io/BasicCalculator.html';
-const outputPath = path.join(__dirname, 'calculator-test-results.csv');
+const outputPath = path.join(__dirname, '..', '..', 'calculator-test-results.csv');
 let pageSource = '';
 
 function createPage(build) {
