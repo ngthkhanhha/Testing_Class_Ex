@@ -1,0 +1,3 @@
+Test Case ID,Module,Scenario,Input,Expected Result,Priority
+TC-05,Arithmetic,Division with decimal result,7 / 2,3.5,P1
+TC-08,Division,Reject division by zero,7 / 0,Divide-by-zero error; no non-finite answer; controls recover,P1

@@ -143,9 +143,18 @@ async function main() {
     }
   }
   console.log(`Results saved to ${outputPath}`);
+
+  // Automatically split build test cases & results into per-build files
+  try {
+    const { splitBuildTests } = require('./split_build_tests.js');
+    splitBuildTests();
+  } catch (err) {
+    console.error('Error running splitBuildTests:', err.message);
+  }
 }
 
 main().catch(error => {
   console.error(error.message);
   process.exitCode = 1;
 });
+

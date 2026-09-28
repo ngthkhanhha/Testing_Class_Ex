@@ -1,0 +1,3 @@
+Test Case ID,Module,Scenario,Input,Expected Result,Priority
+TC-09,Concatenation,Concatenate text operands,foo concatenate bar,foobar,P1
+TC-10,Operation state,Integer option hidden for concatenation,Choose Concatenate,Integer option hidden and unchecked,P2
