@@ -120,16 +120,15 @@ function safeWriteFileSync(filePath, content) {
 function parseTargetBuilds() {
   const args = process.argv.slice(2);
   if (args.length === 0) {
-    return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    return [1, 2, 3, 4, 5, 6];
   }
   const rawArg = args[0].toLowerCase().replace(/^--build=/, '').replace(/^build_?/, '');
-  if (rawArg === 'prototype' || rawArg === 'proto') return [0];
   const parsed = parseInt(rawArg, 10);
-  if (!isNaN(parsed) && parsed >= 0 && parsed <= 9) {
+  if (!isNaN(parsed) && parsed >= 1 && parsed <= 6) {
     return [parsed];
   }
   console.warn(`Unknown build parameter "${args[0]}", running for all builds.`);
-  return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  return [1, 2, 3, 4, 5, 6];
 }
 
 async function runTestCaseScript(tcId, tcDescription, checkFn) {
@@ -137,7 +136,7 @@ async function runTestCaseScript(tcId, tcDescription, checkFn) {
   const testRunsDir = path.join(__dirname, '..', 'test-runs');
   const buildsToRun = parseTargetBuilds();
   
-  console.log(`Executing Script for ${tcId}: ${tcDescription} [Build(s): ${buildsToRun.map(b => b === 0 ? 'Prototype' : b).join(', ')}]`);
+  console.log(`Executing Script for ${tcId}: ${tcDescription} [Build(s): ${buildsToRun.join(', ')}]`);
 
   for (const build of buildsToRun) {
     const folderName = build === 0 ? 'prototype' : `build_${build}`;

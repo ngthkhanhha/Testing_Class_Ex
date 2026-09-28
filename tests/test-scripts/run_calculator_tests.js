@@ -126,18 +126,19 @@ async function main() {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Page download failed: HTTP ${response.status}`);
   pageSource = await response.text();
-  const results = Array.from({ length: 10 }, (_, build) => runBuild(build)).flat();
+  const builds = [1, 2, 3, 4, 5, 6];
+  const results = builds.flatMap(build => runBuild(build));
   const lines = ['Build,Test Case,Scenario,Status,Actual Result'];
   for (const result of results) {
-    const values = [result.build === 0 ? 'Prototype' : result.build, result.id, result.description, result.status, result.actual];
+    const values = [result.build, result.id, result.description, result.status, result.actual];
     lines.push(values.map(value => `"${String(value).replaceAll('"', '""')}"`).join(','));
   }
   fs.writeFileSync(outputPath, `${lines.join('\n')}\n`);
-  for (let build = 0; build < 10; build++) {
+  for (const build of builds) {
     const current = results.filter(result => result.build === build);
     const passed = current.filter(result => result.status === 'PASS').length;
     const failed = current.length - passed;
-    console.log(`${build === 0 ? 'Prototype' : `Build ${build}`}: ${passed}/${current.length} PASS, ${failed} FAIL`);
+    console.log(`Build ${build}: ${passed}/${current.length} PASS, ${failed} FAIL`);
     for (const result of current.filter(result => result.status !== 'PASS')) {
       console.log(`  ${result.status} ${result.id}: ${result.description} | ${result.actual}`);
     }

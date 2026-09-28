@@ -1,36 +1,44 @@
-# Bug Report: BUG-3-TC10 - Integer option not hidden for concatenation
+# [BUG][Operation state] Integer option not hidden for concatenation
 
 | Attribute | Details |
 |---|---|
 | **Bug ID** | `BUG-3-TC10` |
 | **Build** | 3 |
-| **Test Case ID** | TC-10 |
+| **Found by Test Case** | TC-10 |
 | **Module / Area** | Operation state |
-| **Priority / Severity** | P2 |
+| **Severity / Priority** | Major / P2 |
 | **Status** | Open (Failed in Test Run) |
 | **Date Reported** | 2026-09-28 |
 
----
+## Description
 
-### 1. Description
-During test execution of test case **TC-10** on **Build 3**, the application failed to produce the expected output.
+TC-10 failed during automated execution on Build 3.
 
-### 2. Steps to Reproduce
-1. Open the Basic Calculator test page at `https://testsheepnz.github.io/BasicCalculator.html`.
-2. Select **Build 3** from the **Build** dropdown.
-3. Perform test input: `Choose Concatenate operation`.
-4. Trigger calculation / inspect control state.
+## Environment
 
-### 3. Expected Result
-```text
-Integer option checkbox and label are hidden and unchecked
-```
+- URL: `https://testsheepnz.github.io/BasicCalculator.html`
+- Build: 3
+- Execution method: Repository automated test runner using an isolated DOM model
 
-### 4. Actual Result
-```text
+## Steps to Reproduce
+
+1. Open the Basic Calculator test page.
+2. Select **Build 3**.
+3. Perform test input: `Choose Concatenate`.
+4. Trigger calculation or inspect the relevant control state.
+
+## Expected Result
+
+Integer option is hidden and unchecked
+
+## Actual Result
+
 hidden=false; checked=false
-```
 
-### 5. Root Cause / Defect Impact
-- **Impact**: Functional defect in Operation state module on Build 3.
-- **Observed Behavior**: `hidden=false; checked=false`.
+## Evidence
+
+Automated test output: `hidden=false; checked=false`
+
+## Impact
+
+Functional defect in the Operation state module on Build 3.

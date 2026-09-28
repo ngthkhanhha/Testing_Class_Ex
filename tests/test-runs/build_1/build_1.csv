@@ -1,16 +1,16 @@
 Test Case ID,Module,Tester,Result,Related Bug,Note
-TC-01,Build selection,,Pass,,
-TC-02,Arithmetic,,Pass,,
-TC-03,Arithmetic,,Pass,,
-TC-04,Arithmetic,,Pass,,
-TC-05,Arithmetic,,Pass,,
-TC-06,Validation,,Fail,,
-TC-07,Validation,,Fail,,
-TC-08,Division,,Fail,,
-TC-09,Concatenation,,Pass,,
-TC-10,Operation state,,Pass,,
-TC-11,Operation state,,Pass,,
-TC-12,Formatting,,Pass,,
-TC-13,Clear,,Pass,,
-TC-14,Build state,,Pass,,
-TC-15,Build state,,Pass,,
+TC-01,Build selection,Automated test runner,Pass,,build=1; controlsVisible=true
+TC-02,Arithmetic,Automated test runner,Pass,,10
+TC-03,Arithmetic,Automated test runner,Pass,,4
+TC-04,Arithmetic,Automated test runner,Pass,,21
+TC-05,Arithmetic,Automated test runner,Pass,,3.5
+TC-06,Validation,Automated test runner,Fail,BUG-1-TC06,error=(blank); answer=(blank)
+TC-07,Validation,Automated test runner,Fail,BUG-1-TC07,error=(blank); answer=(blank)
+TC-08,Division,Automated test runner,Fail,BUG-1-TC08,error=Divide by zero error!; answer=(blank); calculateDisabled=true; calculatingHidden=false
+TC-09,Concatenation,Automated test runner,Pass,,foobar
+TC-10,Operation state,Automated test runner,Pass,,hidden=true; checked=false
+TC-11,Operation state,Automated test runner,Pass,,hidden=false; disabled=false
+TC-12,Formatting,Automated test runner,Pass,,3
+TC-13,Clear,Automated test runner,Pass,,answer=(blank); error=(blank); checked=false
+TC-14,Build state,Automated test runner,Pass,,disabled=false
+TC-15,Build state,Automated test runner,Pass,,number2Hidden=false; calculateHidden=false

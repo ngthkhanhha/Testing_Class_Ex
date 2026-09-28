@@ -1,36 +1,44 @@
-# Bug Report: BUG-3-TC08 - Division by zero handling and control recovery failure
+# [BUG][Division] Division by zero handling and control recovery failure
 
 | Attribute | Details |
 |---|---|
 | **Bug ID** | `BUG-3-TC08` |
 | **Build** | 3 |
-| **Test Case ID** | TC-08 |
+| **Found by Test Case** | TC-08 |
 | **Module / Area** | Division |
-| **Priority / Severity** | P1 |
+| **Severity / Priority** | Major / P1 |
 | **Status** | Open (Failed in Test Run) |
 | **Date Reported** | 2026-09-28 |
 
----
+## Description
 
-### 1. Description
-During test execution of test case **TC-08** on **Build 3**, the application failed to produce the expected output.
+TC-08 failed during automated execution on Build 3.
 
-### 2. Steps to Reproduce
-1. Open the Basic Calculator test page at `https://testsheepnz.github.io/BasicCalculator.html`.
-2. Select **Build 3** from the **Build** dropdown.
+## Environment
+
+- URL: `https://testsheepnz.github.io/BasicCalculator.html`
+- Build: 3
+- Execution method: Repository automated test runner using an isolated DOM model
+
+## Steps to Reproduce
+
+1. Open the Basic Calculator test page.
+2. Select **Build 3**.
 3. Perform test input: `7 / 0 (Operation: Divide)`.
-4. Trigger calculation / inspect control state.
+4. Trigger calculation or inspect the relevant control state.
 
-### 3. Expected Result
-```text
-Divide-by-zero error message displayed; controls recover and remain enabled
-```
+## Expected Result
 
-### 4. Actual Result
-```text
+Divide-by-zero error is displayed, no non-finite answer is produced, and controls recover
+
+## Actual Result
+
 error=Divide by zero error!; answer=(blank); calculateDisabled=true; calculatingHidden=false
-```
 
-### 5. Root Cause / Defect Impact
-- **Impact**: Functional defect in Division module on Build 3.
-- **Observed Behavior**: `error=Divide by zero error!; answer=(blank); calculateDisabled=true; calculatingHidden=false`.
+## Evidence
+
+Automated test output: `error=Divide by zero error!; answer=(blank); calculateDisabled=true; calculatingHidden=false`
+
+## Impact
+
+Functional defect in the Division module on Build 3.

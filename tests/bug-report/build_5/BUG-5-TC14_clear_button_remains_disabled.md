@@ -1,36 +1,44 @@
-# Bug Report: BUG-5-TC14 - Clear button remains disabled
+# [BUG][Build state] Clear button remains disabled
 
 | Attribute | Details |
 |---|---|
 | **Bug ID** | `BUG-5-TC14` |
 | **Build** | 5 |
-| **Test Case ID** | TC-14 |
+| **Found by Test Case** | TC-14 |
 | **Module / Area** | Build state |
-| **Priority / Severity** | P2 |
+| **Severity / Priority** | Major / P2 |
 | **Status** | Open (Failed in Test Run) |
 | **Date Reported** | 2026-09-28 |
 
----
+## Description
 
-### 1. Description
-During test execution of test case **TC-14** on **Build 5**, the application failed to produce the expected output.
+TC-14 failed during automated execution on Build 5.
 
-### 2. Steps to Reproduce
-1. Open the Basic Calculator test page at `https://testsheepnz.github.io/BasicCalculator.html`.
-2. Select **Build 5** from the **Build** dropdown.
-3. Perform test input: `Inspect Clear button state`.
-4. Trigger calculation / inspect control state.
+## Environment
 
-### 3. Expected Result
-```text
+- URL: `https://testsheepnz.github.io/BasicCalculator.html`
+- Build: 5
+- Execution method: Repository automated test runner using an isolated DOM model
+
+## Steps to Reproduce
+
+1. Open the Basic Calculator test page.
+2. Select **Build 5**.
+3. Perform test input: `Inspect Clear button`.
+4. Trigger calculation or inspect the relevant control state.
+
+## Expected Result
+
 Clear button is enabled
-```
 
-### 4. Actual Result
-```text
+## Actual Result
+
 disabled=true
-```
 
-### 5. Root Cause / Defect Impact
-- **Impact**: Functional defect in Build state module on Build 5.
-- **Observed Behavior**: `disabled=true`.
+## Evidence
+
+Automated test output: `disabled=true`
+
+## Impact
+
+Functional defect in the Build state module on Build 5.

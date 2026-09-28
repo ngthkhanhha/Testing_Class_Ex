@@ -1,22 +1,22 @@
-# Test Run Report - Build 3
+# Test Run Report - Build 6
 
 - **Execution date:** 2026-09-28
 - **Tester:** Automated test runner
 - **Environment:** Basic Calculator web page; page JavaScript executed in the repository's isolated DOM model
-- **Summary:** 12 passed, 3 failed, 15 total
+- **Summary:** 14 passed, 1 failed, 15 total
 
 | Test Case ID | Module | Tester | Result | Related Bug | Note |
 |---|---|---|---|---|---|
-| TC-01 | Build selection | Automated test runner | Pass |  | build=3; controlsVisible=true |
+| TC-01 | Build selection | Automated test runner | Pass |  | build=6; controlsVisible=true |
 | TC-02 | Arithmetic | Automated test runner | Pass |  | 10 |
 | TC-03 | Arithmetic | Automated test runner | Pass |  | 4 |
 | TC-04 | Arithmetic | Automated test runner | Pass |  | 21 |
 | TC-05 | Arithmetic | Automated test runner | Pass |  | 3.5 |
 | TC-06 | Validation | Automated test runner | Pass |  | error=Number 1 is not a number; answer=(blank) |
 | TC-07 | Validation | Automated test runner | Pass |  | error=Number 2 is not a number; answer=(blank) |
-| TC-08 | Division | Automated test runner | Fail | BUG-3-TC08 | error=Divide by zero error!; answer=(blank); calculateDisabled=true; calculatingHidden=false |
-| TC-09 | Concatenation | Automated test runner | Fail | BUG-3-TC09 |  |
-| TC-10 | Operation state | Automated test runner | Fail | BUG-3-TC10 | hidden=false; checked=false |
+| TC-08 | Division | Automated test runner | Fail | BUG-6-TC08 | error=(blank); answer=Infinity; calculateDisabled=false; calculatingHidden=true |
+| TC-09 | Concatenation | Automated test runner | Pass |  | foobar |
+| TC-10 | Operation state | Automated test runner | Pass |  | hidden=true; checked=false |
 | TC-11 | Operation state | Automated test runner | Pass |  | hidden=false; disabled=false |
 | TC-12 | Formatting | Automated test runner | Pass |  | 3 |
 | TC-13 | Clear | Automated test runner | Pass |  | answer=(blank); error=(blank); checked=false |

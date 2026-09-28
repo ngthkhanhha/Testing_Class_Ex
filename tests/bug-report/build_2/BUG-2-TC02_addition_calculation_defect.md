@@ -1,36 +1,44 @@
-# Bug Report: BUG-2-TC02 - Addition calculation defect
+# [BUG][Arithmetic] Addition calculation defect
 
 | Attribute | Details |
 |---|---|
 | **Bug ID** | `BUG-2-TC02` |
 | **Build** | 2 |
-| **Test Case ID** | TC-02 |
+| **Found by Test Case** | TC-02 |
 | **Module / Area** | Arithmetic |
-| **Priority / Severity** | P1 |
+| **Severity / Priority** | Major / P1 |
 | **Status** | Open (Failed in Test Run) |
 | **Date Reported** | 2026-09-28 |
 
----
+## Description
 
-### 1. Description
-During test execution of test case **TC-02** on **Build 2**, the application failed to produce the expected output.
+TC-02 failed during automated execution on Build 2.
 
-### 2. Steps to Reproduce
-1. Open the Basic Calculator test page at `https://testsheepnz.github.io/BasicCalculator.html`.
-2. Select **Build 2** from the **Build** dropdown.
+## Environment
+
+- URL: `https://testsheepnz.github.io/BasicCalculator.html`
+- Build: 2
+- Execution method: Repository automated test runner using an isolated DOM model
+
+## Steps to Reproduce
+
+1. Open the Basic Calculator test page.
+2. Select **Build 2**.
 3. Perform test input: `7 + 3 (Operation: Add)`.
-4. Trigger calculation / inspect control state.
+4. Trigger calculation or inspect the relevant control state.
 
-### 3. Expected Result
-```text
+## Expected Result
+
 10
-```
 
-### 4. Actual Result
-```text
+## Actual Result
+
 73
-```
 
-### 5. Root Cause / Defect Impact
-- **Impact**: Functional defect in Arithmetic module on Build 2.
-- **Observed Behavior**: `73`.
+## Evidence
+
+Automated test output: `73`
+
+## Impact
+
+Functional defect in the Arithmetic module on Build 2.

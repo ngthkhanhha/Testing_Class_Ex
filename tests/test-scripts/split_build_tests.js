@@ -1,250 +1,136 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
-function parseCSVLine(line) {
-  const result = [];
-  let cur = '';
-  let inQuotes = false;
-  line = line.replace(/\r/g, ''); // Strip Windows CRLF \r
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        cur += '"';
-        i++;
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let value = '';
+  let quoted = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    if (char === '"') {
+      if (quoted && text[i + 1] === '"') {
+        value += '"';
+        i += 1;
       } else {
-        inQuotes = !inQuotes;
+        quoted = !quoted;
       }
-    } else if (c === ',' && !inQuotes) {
-      result.push(cur.trim());
-      cur = '';
+    } else if (char === ',' && !quoted) {
+      row.push(value);
+      value = '';
+    } else if ((char === '\n' || char === '\r') && !quoted) {
+      if (char === '\r' && text[i + 1] === '\n') i += 1;
+      row.push(value);
+      if (row.some(cell => cell !== '')) rows.push(row);
+      row = [];
+      value = '';
     } else {
-      cur += c;
+      value += char;
     }
   }
-  result.push(cur.trim());
-  return result;
+
+  if (value !== '' || row.length) {
+    row.push(value);
+    rows.push(row);
+  }
+  return rows;
 }
 
-function escapeCSV(val) {
-  if (val === undefined || val === null) val = '';
-  val = String(val).replace(/\r/g, '').trim();
-  if (val.includes('"') || val.includes(',') || val.includes('\n')) {
-    val = '"' + val.replaceAll('"', '""') + '"';
-  }
-  return val;
+function escapeCsv(value) {
+  const text = String(value ?? '');
+  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
-function safeWriteFileSync(filePath, content) {
-  content = content.replace(/\r\n/g, '\n'); // Normalize to LF
-  if (fs.existsSync(filePath)) {
-    try {
-      const existing = fs.readFileSync(filePath, 'utf8').replace(/\r\n/g, '\n');
-      if (existing === content) return;
-    } catch (_) {}
-  }
-  let retries = 15;
-  while (retries > 0) {
-    try {
-      fs.writeFileSync(filePath, content);
-      return;
-    } catch (err) {
-      retries--;
-      if (retries === 0) {
-        console.warn(`Warning: Skipped writing ${filePath} due to lock: ${err.message}`);
-        return;
-      }
-      try {
-        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
-      } catch (_) {}
-    }
-  }
+function writeIfChanged(filePath, content) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const normalized = content.replace(/\r\n/g, '\n');
+  if (fs.existsSync(filePath) && fs.readFileSync(filePath, 'utf8').replace(/\r\n/g, '\n') === normalized) return;
+  fs.writeFileSync(filePath, normalized, 'utf8');
+}
+
+function recordsFromCsv(filePath) {
+  const rows = parseCsv(fs.readFileSync(filePath, 'utf8'));
+  const headers = rows.shift();
+  return rows.map(row => Object.fromEntries(headers.map((header, index) => [header, row[index] ?? ''])));
 }
 
 function splitBuildTests() {
-  const scriptDir = __dirname;
-  const rootDir = path.join(scriptDir, '..', '..');
-  const testcasesPath = path.join(rootDir, 'calculator-testcases.csv');
-  const testresultsPath = path.join(rootDir, 'calculator-test-results.csv');
-  const testCasesDir = path.join(rootDir, 'tests', 'test-cases');
-  const testRunsDir = path.join(rootDir, 'tests', 'test-runs');
-  const testSummaryDir = path.join(rootDir, 'tests', 'test-summary');
+  const projectRoot = path.join(__dirname, '..', '..');
+  const cases = recordsFromCsv(path.join(projectRoot, 'calculator-testcases.csv'));
+  const results = recordsFromCsv(path.join(projectRoot, 'calculator-test-results.csv'));
+  const caseMap = new Map(cases.map(testCase => [testCase['Test Case ID'] || testCase['TC-ID'], testCase]));
+  const testRunsDir = path.join(projectRoot, 'tests', 'test-runs');
 
-  if (!fs.existsSync(testcasesPath) || !fs.existsSync(testresultsPath)) {
-    console.error('Missing input CSV files for splitting.');
-    return;
-  }
+  // Existing build folders define the assignment scope. This prevents a full
+  // calculator scan from creating placeholder run reports for future builds.
+  const managedBuilds = fs.readdirSync(testRunsDir, { withFileTypes: true })
+    .filter(entry => entry.isDirectory() && /^build_\d+$/.test(entry.name))
+    .map(entry => entry.name.replace('build_', ''))
+    .sort((a, b) => Number(a) - Number(b));
 
-  // Read test cases
-  const tcRaw = fs.readFileSync(testcasesPath, 'utf8').replace(/\r/g, '').trim().split('\n');
-  const tcMap = new Map();
-  const tcList = [];
+  const summary = [['Build', 'Total Tests', 'Pass', 'Fail', 'Pass Rate']];
+  const executionDate = new Date().toISOString().slice(0, 10);
 
-  for (let i = 1; i < tcRaw.length; i++) {
-    if (!tcRaw[i].trim()) continue;
-    const cols = parseCSVLine(tcRaw[i]);
-    const tcObj = {
-      tcId: cols[0],
-      area: cols[1],
-      scenario: cols[2],
-      input: cols[3],
-      expectedResult: cols[4],
-      priority: cols[5]
-    };
-    tcMap.set(cols[0], tcObj);
-    tcList.push(tcObj);
-  }
+  for (const build of managedBuilds) {
+    const buildResults = results.filter(result => result.Build === build);
+    if (!buildResults.length) continue;
 
-  // Populate test-cases subdirectories
-  const tcCategories = {
-    add: tcList.filter(tc => tc.tcId === 'TC-02' || tc.scenario.toLowerCase().includes('addition') || tc.scenario.toLowerCase().includes('add')),
-    subtract: tcList.filter(tc => tc.tcId === 'TC-03' || tc.scenario.toLowerCase().includes('subtraction')),
-    multiply: tcList.filter(tc => tc.tcId === 'TC-04' || tc.scenario.toLowerCase().includes('multiplication')),
-    divide: tcList.filter(tc => tc.tcId === 'TC-05' || tc.tcId === 'TC-08' || tc.scenario.toLowerCase().includes('division') || tc.area.toLowerCase().includes('division')),
-    concatenate: tcList.filter(tc => tc.tcId === 'TC-09' || tc.tcId === 'TC-10' || tc.scenario.toLowerCase().includes('concatenate'))
-  };
-
-  const newTCHeaders = ['Test Case ID', 'Module', 'Scenario', 'Input', 'Expected Result', 'Priority'];
-  for (const [cat, items] of Object.entries(tcCategories)) {
-    const catDir = path.join(testCasesDir, cat);
-    if (!fs.existsSync(catDir)) {
-      fs.mkdirSync(catDir, { recursive: true });
-    }
-    const lines = [newTCHeaders.map(escapeCSV).join(',')];
-    for (const item of items) {
-      lines.push([item.tcId, item.area, item.scenario, item.input, item.expectedResult, item.priority].map(escapeCSV).join(','));
-    }
-    safeWriteFileSync(path.join(catDir, `${cat}_testcases.csv`), lines.join('\n') + '\n');
-  }
-
-  fs.mkdirSync(testCasesDir, { recursive: true });
-  const allTCLines = [newTCHeaders.map(escapeCSV).join(',')];
-  for (const item of tcList) {
-    allTCLines.push([item.tcId, item.area, item.scenario, item.input, item.expectedResult, item.priority].map(escapeCSV).join(','));
-  }
-  safeWriteFileSync(path.join(testCasesDir, 'all_testcases.csv'), allTCLines.join('\n') + '\n');
-
-  // Read test results
-  const trRaw = fs.readFileSync(testresultsPath, 'utf8').replace(/\r/g, '').trim().split('\n');
-  const buildMap = new Map();
-
-  for (let i = 1; i < trRaw.length; i++) {
-    if (!trRaw[i].trim()) continue;
-    const cols = parseCSVLine(trRaw[i]);
-    const build = cols[0];
-    const tcId = cols[1];
-    const scenarioResult = cols[2];
-    const status = cols[3];
-    const actualResult = cols[4];
-
-    if (!buildMap.has(build)) {
-      buildMap.set(build, []);
-    }
-    buildMap.get(build).push({
-      build,
-      tcId,
-      scenarioResult,
-      status,
-      actualResult
-    });
-  }
-
-  if (!fs.existsSync(testRunsDir)) {
-    fs.mkdirSync(testRunsDir, { recursive: true });
-  }
-  if (!fs.existsSync(testSummaryDir)) {
-    fs.mkdirSync(testSummaryDir, { recursive: true });
-  }
-
-  // Exact form headers requested by user:
-  // Test Case ID, Module, Tester, Result, Related Bug, Note
-  // Leaves Tester, Related Bug, and Note blank as requested
-  const csvHeaders = ['Test Case ID', 'Module', 'Tester', 'Result', 'Related Bug', 'Note'];
-  const csvHeaderLine = csvHeaders.map(escapeCSV).join(',');
-
-  const summaryRows = [['Build', 'Total Tests', 'Pass', 'Fail', 'Pass Rate']];
-
-  for (const [build, results] of buildMap.entries()) {
-    const folderName = build.toLowerCase() === 'prototype' ? 'prototype' : `build_${build}`;
-    const buildFolder = path.join(testRunsDir, folderName);
-    
-    if (!fs.existsSync(buildFolder)) {
-      fs.mkdirSync(buildFolder, { recursive: true });
-    }
-
-    const csvLines = [csvHeaderLine];
-    const mdLines = [
-      `# Test Run Report - ${build.toLowerCase() === 'prototype' ? 'Prototype' : `Build ${build}`}`,
-      '',
-      `| Test Case ID | Module | Tester | Result | Related Bug | Note |`,
-      `|---|---|---|---|---|---|`
-    ];
-
-    let passCount = 0;
-    let failCount = 0;
-
-    for (const res of results) {
-      const tcDetails = tcMap.get(res.tcId) || {
-        area: 'General',
-        scenario: res.scenarioResult
+    const outputRows = buildResults.map(result => {
+      const testCase = caseMap.get(result['Test Case']) || {};
+      const passed = result.Status === 'PASS';
+      return {
+        'Test Case ID': result['Test Case'],
+        Module: testCase.Module || testCase.Area || 'General',
+        Tester: 'Automated test runner',
+        Result: passed ? 'Pass' : 'Fail',
+        'Related Bug': passed ? '' : `BUG-${build}-${result['Test Case'].replace('-', '')}`,
+        Note: result['Actual Result'] || ''
       };
+    });
 
-      const moduleName = tcDetails.area || 'General';
-      const tester = '';
-      const statusTitleCase = res.status === 'PASS' ? 'Pass' : 'Fail';
-      const relatedBug = '';
-      const note = '';
+    const headers = ['Test Case ID', 'Module', 'Tester', 'Result', 'Related Bug', 'Note'];
+    const csv = [headers, ...outputRows.map(item => headers.map(header => item[header]))]
+      .map(row => row.map(escapeCsv).join(','))
+      .join('\n') + '\n';
 
-      if (statusTitleCase === 'Pass') passCount++;
-      else failCount++;
+    const passed = outputRows.filter(row => row.Result === 'Pass').length;
+    const failed = outputRows.length - passed;
+    const passRate = `${((passed / outputRows.length) * 100).toFixed(1)}%`;
+    const markdown = [
+      `# Test Run Report - Build ${build}`,
+      '',
+      `- **Execution date:** ${executionDate}`,
+      '- **Tester:** Automated test runner',
+      "- **Environment:** Basic Calculator web page; page JavaScript executed in the repository's isolated DOM model",
+      `- **Summary:** ${passed} passed, ${failed} failed, ${outputRows.length} total`,
+      '',
+      '| Test Case ID | Module | Tester | Result | Related Bug | Note |',
+      '|---|---|---|---|---|---|',
+      ...outputRows.map(row => `| ${row['Test Case ID']} | ${row.Module} | ${row.Tester} | ${row.Result} | ${row['Related Bug']} | ${row.Note.replaceAll('|', '\\|')} |`),
+      ''
+    ].join('\n');
 
-      const row = [
-        res.tcId,
-        moduleName,
-        tester,
-        statusTitleCase,
-        relatedBug,
-        note
-      ];
-
-      csvLines.push(row.map(escapeCSV).join(','));
-
-      const statusBadge = statusTitleCase === 'Pass' ? '✅ **Pass**' : '❌ **Fail**';
-      mdLines.push(`| ${res.tcId} | ${moduleName} | | ${statusBadge} | | |`);
-    }
-
-    const total = results.length;
-    const passRate = ((passCount / total) * 100).toFixed(1) + '%';
-    summaryRows.push([build, total, passCount, failCount, passRate]);
-
-    const filenameBase = build.toLowerCase() === 'prototype' ? 'prototype' : `build_${build}`;
-    safeWriteFileSync(path.join(buildFolder, `${filenameBase}.csv`), csvLines.join('\n') + '\n');
-    safeWriteFileSync(path.join(buildFolder, `${filenameBase}.md`), mdLines.join('\n') + '\n');
-
-    // Also write direct CSV file in test-runs directory (e.g. tests/test-runs/build_1.csv)
-    safeWriteFileSync(path.join(testRunsDir, `${filenameBase}.csv`), csvLines.join('\n') + '\n');
-
-    console.log(`Generated build file for ${build}: ${passCount}/${total} Passed (${passRate})`);
+    const buildDir = path.join(testRunsDir, `build_${build}`);
+    writeIfChanged(path.join(buildDir, `build_${build}.csv`), csv);
+    writeIfChanged(path.join(buildDir, `build_${build}.md`), markdown);
+    summary.push([build, outputRows.length, passed, failed, passRate]);
   }
 
-  // Write summary file in tests/test-summary/
-  const summaryCsvLines = summaryRows.map(r => r.map(escapeCSV).join(',')).join('\n') + '\n';
-  safeWriteFileSync(path.join(testSummaryDir, 'summary.csv'), summaryCsvLines);
-
+  const summaryDir = path.join(projectRoot, 'tests', 'test-summary');
+  const summaryCsv = summary.map(row => row.map(escapeCsv).join(',')).join('\n') + '\n';
   const summaryMd = [
     '# Calculator Build Test Summary',
     '',
     '| Build | Total Tests | Pass | Fail | Pass Rate |',
     '|---|---:|---:|---:|---:|',
-    ...summaryRows.slice(1).map(r => `| ${r[0]} | ${r[1]} | ${r[2]} | ${r[3]} | **${r[4]}** |`)
-  ].join('\n') + '\n';
-  safeWriteFileSync(path.join(testSummaryDir, 'summary.md'), summaryMd);
-
-  console.log('All per-build test files updated successfully with empty Tester, Related Bug, and Note columns!');
+    ...summary.slice(1).map(row => `| ${row[0]} | ${row[1]} | ${row[2]} | ${row[3]} | **${row[4]}** |`),
+    ''
+  ].join('\n');
+  writeIfChanged(path.join(summaryDir, 'summary.csv'), summaryCsv);
+  writeIfChanged(path.join(summaryDir, 'summary.md'), summaryMd);
 }
 
 module.exports = { splitBuildTests };
 
-if (require.main === module) {
-  splitBuildTests();
-}
+if (require.main === module) splitBuildTests();
