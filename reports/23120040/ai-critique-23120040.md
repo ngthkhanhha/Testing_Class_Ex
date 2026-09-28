@@ -1,0 +1,9 @@
+# AI Critique — 23120040
+
+Trong quá trình thực hiện bài tập, Codex giúp tôi đọc hai tài liệu mẫu, chạy test, chuẩn hóa test run, tạo liên kết giữa test case và bug report, đồng thời dọn cấu trúc repository. Kết quả hữu ích nhất là test run build 5–6 có dữ liệu thực tế, các test Fail đều có Related Bug và Note, bug report có đủ Expected/Actual/Evidence, và phạm vi cuối cùng chỉ còn build 1–6.
+
+Tuy nhiên, quá trình làm việc cũng bộc lộ một số hạn chế. Ban đầu AI làm theo phạm vi build 6–7 trước khi tôi đính chính thành build 5–6. Khi lần chạy đầu tiên bị chặn truy cập mạng, AI tạm dựa vào kết quả đã lưu trong repository; sau đó mới chạy lại trang thật khi có quyền mạng. Runner vẫn chỉ thực thi JavaScript trong DOM mô phỏng nên không xác nhận được giao diện, thao tác người dùng hoặc hành vi riêng của từng trình duyệt.
+
+AI cũng từng chạy runner cho toàn bộ Prototype và build 1–9, làm phát sinh các thư mục ngoài tiến độ. Sau khi tôi yêu cầu chỉ giữ build 1–6, AI đã xóa các artifact ngoài phạm vi và sửa script để chúng không được tạo lại. Một lỗi kỹ thuật khác xuất hiện khi `calculator-test-results.csv` được ghi lại với UTF-8 BOM: parser không nhận đúng tên cột `Build`, khiến test summary tạm thời bị rỗng. AI chỉ phát hiện lỗi này trong bước lập report và phải bổ sung xử lý BOM rồi tái tạo summary.
+
+Bài học tôi rút ra là cần xác định phạm vi build ngay từ đầu, kiểm tra file đầu ra sau mỗi lần chạy script, và không chỉ dựa vào thông báo “command thành công”. Với CSV, cần kiểm tra cả encoding, số dòng và tên cột. Với automation, cần phân biệt rõ kiểm thử logic trong DOM mô phỏng với kiểm thử trình duyệt thực. AI phù hợp để tự động hóa công việc lặp lại và tạo bản nháp có cấu trúc, nhưng người thực hiện vẫn phải duyệt phạm vi, tính truy vết và độ chính xác của báo cáo trước khi commit.
