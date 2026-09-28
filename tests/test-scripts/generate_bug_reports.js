@@ -20,6 +20,7 @@ const metadata = {
 };
 
 function parseCsv(text) {
+  text = text.replace(/^\uFEFF/, '');
   const rows = [];
   let row = [];
   let value = '';
